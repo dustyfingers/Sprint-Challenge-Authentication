@@ -5,8 +5,9 @@ const Users = require('../models/users');
 const db = require('../database/dbConfig');
 const jwt = require('jsonwebtoken');
 const isUserLoggedIn = require('./authenticate-middleware');
+const secrets = require('../config/secrets');
 
-router.post('/register', isUserLoggedIn, async (req, res) => {
+router.post('/register',  async (req, res) => {
   try {
     let { USERNAME, PASSWORD } = req.body;
     bcrypt.hash(PASSWORD, 8, async (err, hash) => {
@@ -20,18 +21,14 @@ router.post('/register', isUserLoggedIn, async (req, res) => {
   }
 });
 
-router.post('/login', isUserLoggedIn, async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     let { USERNAME, PASSWORD } = req.body;
     let user = await Users.findBy({ USERNAME });
-    const response = await bcrypt.compare(PASSWORD, user.PASSWORD);
+    const response = await bcrypt.compare(PASSWORD, user.password);
     
     if (response) {
-      const secret = uuid.v4();
-      const token = jwt.sign({
-        data: user.USERNAME
-      }, secret, { expiresIn: '1h' });
-
+      const token = jwt.sign({ data: user.USERNAME }, secrets.jwtSecret, { expiresIn: '1h' });
       res.status(200).json({ token });
     } else {
       res.status(500).json({ message: err.message });
