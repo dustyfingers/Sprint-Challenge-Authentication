@@ -4,5 +4,7 @@
 */
 
 module.exports = (req, res, next) => {
-  res.status(401).json({ you: 'shall not pass!' });
+  req.headers.authToken ? next() : console.log('no auth token provided in headers!');
+  next();
+  //res.status(401).json({ you: 'shall not pass!' });
 };
